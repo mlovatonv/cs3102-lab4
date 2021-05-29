@@ -27,7 +27,7 @@ Recovered
 ![](images/apollonian_gasket2.png)
 
 ```
-Compression ratio = 1439769 / 852266 = 1.68
+Compression ratio = 1439769 / 880104 = 1.64
 ```
 
 #### Balloons
@@ -41,7 +41,7 @@ Recovered
 ![](images/balloons2.png)
 
 ```
-Compression ratio = 1209029 / 7240097 = 0.17
+Compression ratio = 1209029 / 6855478 = 0.18
 ```
 
 #### DLA
@@ -55,5 +55,5 @@ Recovered
 ![](images/dla2.png)
 
 ```
-Compression ratio = 2439271 / 2879562 = 0.85
+Compression ratio = 2472811 / 3053678 = 0.81
 ```

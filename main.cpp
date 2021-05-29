@@ -76,7 +76,7 @@ struct BBOX
 
     bool contains_in_border(const XY &xy) const
     {
-        return this->top_right.x == xy.x && this->bottom_left.y == xy.y;
+        return this->bottom_left.x == xy.x && this->bottom_left.y == xy.y;
     }
 
     XY center() const
