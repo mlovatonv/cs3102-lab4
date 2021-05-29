@@ -1,3 +1,9 @@
+#ifdef DBG_MACRO_NO_WARNING
+#include <dbg.h>
+#else
+#define dbg(...) ((void)0)
+#endif
+
 #include <algorithm>
 #include <cassert>
 #include <fstream>
@@ -43,6 +49,12 @@ struct XY
     {
         return this->x >= o.x && this->y >= o.y;
     }
+
+    friend ostream &operator<<(ostream &output, const XY &o)
+    {
+        output << "( " << o.x << ", " << o.y << ", " << o.data << " )";
+        return output;
+    }
 };
 
 struct BBOX
@@ -79,8 +91,16 @@ public:
 
     QuadTree(BBOX bbox) : bbox(bbox)
     {
-        children.reserve(QT_NODE_CHILDREN);
-        points.reserve(QT_NODE_CAPACITY);
+        this->children.reserve(QT_NODE_CHILDREN);
+        this->points.reserve(QT_NODE_CAPACITY);
+    }
+
+    QuadTree(BBOX bbox, vector<XY> points) : bbox(bbox)
+    {
+        for (auto &point : points)
+        {
+            this->insert(point);
+        }
     }
 
     bool is_leaf() const
@@ -181,15 +201,40 @@ struct IO
 
     vector<XY> read_image(string filename)
     {
-        vector<XY> matrix;
+        vector<XY> points;
+        dbg(filename);
 
-        return matrix;
+        ifstream file(filename);
+        string line;
+        int w, h, n;
+        file >> w >> h;
+
+        for (int i = 0; i < h; ++i)
+        {
+            for (int j = 0; j < w; ++j)
+            {
+                file >> n;
+                points.push_back(XY(i, j, n));
+            }
+        }
+
+        return points;
     }
 };
 
+IO io;
+
 int main()
 {
-    IO io;
+    dbg("test");
+
+    vector<XY> points = io.read_image("tests/apollonian_gasket.pgm");
+
+    dbg(points);
+
+    //QuadTree tree(BBOX(XY(0, 0), points.back()), points);
+    //io.write_tree("tree", tree);
+    //io.write_image("image.pgm", io.read_tree("tree"));
 
     return 0;
 }
