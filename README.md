@@ -16,6 +16,20 @@ Compression ratio = Image size (bytes) / Compressed image size (bytes)
 
 ## Examples
 
+#### Apollonian gasket
+
+Original
+
+![](images/apollonian_gasket.png)
+
+Recovered
+
+![](images/apollonian_gasket2.png)
+
+```
+Compression ratio = 1439769 / 852266 = 1.68
+```
+
 #### Balloons
 
 Original
@@ -30,16 +44,16 @@ Recovered
 Compression ratio = 1209029 / 7240097 = 0.17
 ```
 
-#### Apollonian gasket
+#### DLA
 
 Original
 
-![](images/apollonian_gasket.png)
+![](images/dla.png)
 
 Recovered
 
-![](images/apollonian_gasket2.png)
+![](images/dla2.png)
 
 ```
-Compression ratio = 1439769 / 852266 = 1.68
+Compression ratio = 2439271 / 2879562 = 0.85
 ```
