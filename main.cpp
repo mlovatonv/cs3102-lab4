@@ -1,9 +1,3 @@
-#ifdef DBG_MACRO_NO_WARNING
-#include <dbg.h>
-#else
-#define dbg(...) ((void)0)
-#endif
-
 #include <algorithm>
 #include <cassert>
 #include <fstream>
