@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <queue>
 #include <string>
@@ -121,6 +122,11 @@ public:
         }
     }
 
+    BBOX get_bbox() const
+    {
+        return this->bbox;
+    }
+
     vector<QuadTree *> get_children() const
     {
         return this->children;
@@ -134,9 +140,7 @@ public:
                << o.bbox.top_right.y << " ";
         for (auto &point : o.points)
         {
-            output << point.x << " "
-                   << point.y << " "
-                   << point.data;
+            output << point.data;
         }
         return output;
     }
@@ -238,50 +242,71 @@ public:
 
 struct IO
 {
-    void write_tree(string filename, QuadTree tree)
+    void write_compressed_image(string filename, QuadTree tree)
     {
-        ofstream file(filename, ios::out); // | ios::binary
+        ofstream file(filename, ios::out | ios::binary);
         assert(file);
 
-        int idx = 0;
-        queue<QuadTree *> q;
-        q.push(&tree);
+        XY limits = tree.get_bbox().top_right;
+        file << limits.x + 1 << " " << limits.y + 1 << endl;
 
-        while (!q.empty())
+        function<void(QuadTree *)> dfs = [&](QuadTree *t2)
         {
-            QuadTree t = *q.front();
-            q.pop();
-            if (!t.is_leaf())
+            if (t2->is_leaf())
             {
-                for (QuadTree *child : t.get_children())
-                {
-                    q.push(child);
-                }
-                for (int i = idx + 1; i <= idx + 4; ++i)
-                {
-                    file << i << " ";
-                }
-                idx += 4;
+                file << *t2 << endl;
             }
             else
             {
-                for (int i = 0; i < 4; ++i)
+                for (auto &c : t2->get_children())
                 {
-                    file << "-1 ";
+                    dfs(c);
                 }
             }
-            file << t << endl;
+        };
+
+        dfs(&tree);
+
+        file.close();
+    }
+
+    void recover_image(string source, string target)
+    {
+        ifstream file(source, ios::in | ios::binary);
+        assert(file);
+
+        int w, h;
+        file >> w >> h;
+
+        vector<vector<int>> image(h, vector<int>(w));
+        int x1, y1, x2, y2, d;
+        while (file >> x1 >> y1 >> x2 >> y2 >> d)
+        {
+            for (int i = y1; i <= y2; ++i)
+            {
+                for (int j = x1; j <= x2; ++j)
+                {
+                    image[i][j] = d;
+                }
+            }
+        }
+
+        file.close();
+
+        ofstream file2(target, ios::out | ios::binary);
+        assert(file2);
+
+        file2 << "P2" << endl
+              << w << " " << h << endl;
+        for (auto &i : image)
+        {
+            for (auto &j : i)
+            {
+                file2 << j << " ";
+            }
+            file2 << endl;
         }
     }
-
-    QuadTree read_tree(string filename)
-    {
-        BBOX bbox(XY(0, 0), XY(0, 0));
-        QuadTree tree(bbox);
-        return tree;
-    }
-
-    void write_image(string filename, QuadTree tree) {}
 
     vector<XY> read_image(string filename)
     {
@@ -310,10 +335,10 @@ struct IO
     }
 } io;
 
-int main()
+int main(int argc, char **argv)
 {
-    vector<XY> points = io.read_image("images/small.pgm");
-    dbg(points);
+    string image_name = "small";
+    vector<XY> points = io.read_image("images/" + image_name + ".pgm");
 
     QuadTree tree(BBOX(XY(0, 0), XY(points.back().x, points.back().y)));
     for (auto &point : points)
@@ -322,9 +347,8 @@ int main()
     }
     // tree.print();
 
-    io.write_tree("tree", tree);
-
-    // io.write_image("image.pgm", io.read_tree("tree"));
+    io.write_compressed_image("images/" + image_name + ".pgm.qd", tree);
+    io.recover_image("images/" + image_name + ".pgm.qd", "images/" + image_name + "2.pgm");
 
     return 0;
 }
