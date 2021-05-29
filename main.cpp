@@ -78,6 +78,11 @@ struct BBOX
         return this->bottom_left <= xy && xy <= this->top_right;
     }
 
+    bool contains_in_border(const XY &xy) const
+    {
+        return this->top_right.x == xy.x && this->bottom_left.y == xy.y;
+    }
+
     XY center() const
     {
         return XY(mid(top_right.x, bottom_left.x), mid(top_right.y, bottom_left.y));
@@ -106,11 +111,12 @@ public:
         this->points.reserve(QT_NODE_CAPACITY);
     }
 
-    QuadTree(BBOX bbox, vector<XY> points) : bbox(bbox)
+    QuadTree(BBOX bbox, vector<XY> points) : bbox(bbox), points(points)
     {
-        for (auto &point : points)
+        this->children.reserve(QT_NODE_CHILDREN);
+        if (points.size() < QT_NODE_CAPACITY)
         {
-            this->insert(point);
+            this->points.reserve(QT_NODE_CAPACITY);
         }
     }
 
@@ -145,9 +151,14 @@ public:
                     /* Union */
                     return;
                 }
-                else
+                else if (this->bbox.contains_in_border(point))
                 {
                     /* Intersection */
+                    this->points = {point};
+                }
+                else
+                {
+                    /* Divide */
                     divide();
                     this->insert(point);
                 }
@@ -181,17 +192,11 @@ public:
             sw(bottom_left, center),
             se(XY(center.x + 1, bottom_left.y), XY(top_right.x, center.y));
         this->children = {
-            new QuadTree(nw),
-            new QuadTree(ne),
-            new QuadTree(sw),
-            new QuadTree(se)};
-
-        /* Move children */
-        while (!this->points.empty())
-        {
-            this->insert(this->points.back());
-            this->points.pop_back();
-        }
+            new QuadTree(nw, this->points),
+            new QuadTree(ne, this->points),
+            new QuadTree(sw, this->points),
+            new QuadTree(se, this->points)};
+        this->points.clear();
     }
 
     void print()
@@ -248,16 +253,18 @@ struct IO
 
         return points;
     }
-};
-
-IO io;
+} io;
 
 int main()
 {
     vector<XY> points = io.read_image("images/small.pgm");
     dbg(points);
 
-    QuadTree tree(BBOX(XY(0, 0), points.back()), points);
+    QuadTree tree(BBOX(XY(0, 0), XY(points.back().x, points.back().y)));
+    for (auto &point : points)
+    {
+        tree.insert(point);
+    }
     tree.print();
 
     // io.write_tree("tree", tree);
