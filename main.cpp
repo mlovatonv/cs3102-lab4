@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -97,18 +98,32 @@ public:
         return bbox.contains(xy);
     }
 
-    void insert(const XY &xy)
+    void insert(const XY &point)
     {
         if (this->is_leaf())
         {
             if (this->is_full())
             {
-                divide();
-                this->insert(xy);
+                vector<XY>::iterator it = find_if(
+                    this->points.begin(),
+                    this->points.end(),
+                    [&](XY i)
+                    { return i.data == point.data; });
+                if (it != points.end())
+                {
+                    /* Union */
+                    return;
+                }
+                else
+                {
+                    /* Intersection */
+                    divide();
+                    this->insert(point);
+                }
             }
             else
             {
-                this->points.push_back(xy);
+                this->points.push_back(point);
             }
         }
         else
@@ -116,10 +131,12 @@ public:
             vector<QuadTree *>::iterator it = find_if(
                 children.begin(),
                 children.end(),
-                [&](QuadTree *qt)
-                { return qt->contains(xy); });
+                [&](QuadTree *i)
+                { return i->contains(point); });
+
             assert(it != children.end());
-            (*it)->insert(xy);
+
+            (*it)->insert(point);
         }
     }
 
@@ -137,6 +154,13 @@ public:
             new QuadTree(ne),
             new QuadTree(sw),
             new QuadTree(se)};
+
+        /* Move children */
+        while (!this->points.empty())
+        {
+            this->insert(this->points.back());
+            this->points.pop_back();
+        }
     }
 };
 
@@ -155,9 +179,10 @@ struct IO
 
     void write_image(string filename, QuadTree tree) {}
 
-    vector<vector<XY>> read_image(string filename)
+    vector<XY> read_image(string filename)
     {
-        vector<vector<XY>> matrix;
+        vector<XY> matrix;
+
         return matrix;
     }
 };
