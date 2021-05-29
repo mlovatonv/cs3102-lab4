@@ -52,7 +52,12 @@ struct XY
 
     friend ostream &operator<<(ostream &output, const XY &o)
     {
-        output << "( " << o.x << ", " << o.y << ", " << o.data << " )";
+        output << "( " << o.x << ", " << o.y;
+        if (o.data != -1)
+        {
+            output << ", " << o.data;
+        }
+        output << " )";
         return output;
     }
 };
@@ -76,6 +81,12 @@ struct BBOX
     XY center() const
     {
         return XY(mid(top_right.x, bottom_left.x), mid(top_right.y, bottom_left.y));
+    }
+
+    friend ostream &operator<<(ostream &output, const BBOX &o)
+    {
+        output << "[ " << o.bottom_left << ", " << o.top_right << " ]";
+        return output;
     }
 };
 
@@ -182,6 +193,21 @@ public:
             this->points.pop_back();
         }
     }
+
+    void print()
+    {
+        cout << "QuadtTree(bbox=" << this->bbox << ", points=[";
+        for (auto &point : this->points)
+        {
+            cout << " " << point;
+        }
+        cout << " ], children=[" << endl;
+        for (auto &child : this->children)
+        {
+            child->print();
+        }
+        cout << "])" << endl;
+    }
 };
 
 struct IO
@@ -201,18 +227,20 @@ struct IO
 
     vector<XY> read_image(string filename)
     {
-        vector<XY> points;
-        dbg(filename);
-
         ifstream file(filename);
+        assert(file);
+
         string line;
-        int w, h, n;
+        file >> line;
+        int w, h;
         file >> w >> h;
 
+        vector<XY> points;
         for (int i = 0; i < h; ++i)
         {
             for (int j = 0; j < w; ++j)
             {
+                int n;
                 file >> n;
                 points.push_back(XY(i, j, n));
             }
@@ -226,15 +254,15 @@ IO io;
 
 int main()
 {
-    dbg("test");
-
-    vector<XY> points = io.read_image("tests/apollonian_gasket.pgm");
-
+    vector<XY> points = io.read_image("images/small.pgm");
     dbg(points);
 
-    //QuadTree tree(BBOX(XY(0, 0), points.back()), points);
-    //io.write_tree("tree", tree);
-    //io.write_image("image.pgm", io.read_tree("tree"));
+    QuadTree tree(BBOX(XY(0, 0), points.back()), points);
+    tree.print();
+
+    // io.write_tree("tree", tree);
+
+    // io.write_image("image.pgm", io.read_tree("tree"));
 
     return 0;
 }
