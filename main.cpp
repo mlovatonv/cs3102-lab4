@@ -248,7 +248,7 @@ struct IO
         assert(file);
 
         XY limits = tree.get_bbox().top_right;
-        file << limits.x + 1 << " " << limits.y + 1 << endl;
+        file << limits.y + 1 << " " << limits.x + 1 << endl;
 
         function<void(QuadTree *)> dfs = [&](QuadTree *t2)
         {
@@ -282,9 +282,9 @@ struct IO
         int x1, y1, x2, y2, d;
         while (file >> x1 >> y1 >> x2 >> y2 >> d)
         {
-            for (int i = y1; i <= y2; ++i)
+            for (int i = x1; i <= x2; ++i)
             {
-                for (int j = x1; j <= x2; ++j)
+                for (int j = y1; j <= y2; ++j)
                 {
                     image[i][j] = d;
                 }
@@ -337,7 +337,7 @@ struct IO
 
 int main(int argc, char **argv)
 {
-    string image_name = "small";
+    string image_name = argv[1];
     vector<XY> points = io.read_image("images/" + image_name + ".pgm");
 
     QuadTree tree(BBOX(XY(0, 0), XY(points.back().x, points.back().y)));
